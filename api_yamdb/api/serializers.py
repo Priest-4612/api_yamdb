@@ -15,6 +15,12 @@ class TitleSerializer(serializers.ModelSerializer):
         model = Title
         fields = '__all__'
 
+    def validate_year(self, value):
+        year = dt.date.today().year
+        if value > year:
+            raise serializers.ValidationError('Проверьте год издания произведения!')
+        return value
+
 
 class CategorySerializer(serializers.ModelSerializer):
 
