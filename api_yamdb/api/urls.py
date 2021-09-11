@@ -10,7 +10,7 @@ router_B.register('titles', TitleViewSet)
 urlpatterns = [
     path('v1/', include(router_B.urls)),
     path('v1/genres/', GenreList.as_view()),
-    path('v1/<slug:slug>/', GenreDestroy.as_view()),
+    path('v1/genres/<slug:slug>/', GenreDestroy.as_view()),
     path('v1/categories/', CategoryList.as_view()),
     path('v1/categories/<slug:slug>/', CategoryDestroy.as_view()),
 ]
