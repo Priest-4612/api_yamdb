@@ -2,7 +2,13 @@ from django.urls import path, include
 
 from rest_framework.routers import DefaultRouter
 
-from .views import CategoryDestroy, TitleViewSet, GenreList, GenreDestroy, CategoryList
+from .views import (
+    CategoryDestroy,
+    TitleViewSet,
+    GenreList,
+    GenreDestroy,
+    CategoryList,
+)
 
 router_B = DefaultRouter()
 router_B.register('titles', TitleViewSet, basename='titles')

@@ -1,4 +1,3 @@
-
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
@@ -11,8 +10,4 @@ urlpatterns = [
         name='redoc'
     ),
     path('api/', include('api.urls')),
-# FIXIT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#    path('api/', include('users.urls')),
-#    path('auth/', include('djoser.urls')),
-#    path('auth/', include('djoser.urls.jwt')),
 ]
