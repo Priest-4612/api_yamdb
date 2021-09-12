@@ -16,5 +16,5 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         return (
             request.user.is_superuser
             or (request.user.is_authenticated and request.user.role == 'admin')
-#            or self.action == 'retrieve'
+            or view.action == 'retrieve'
         )

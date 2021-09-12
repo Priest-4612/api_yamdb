@@ -1,12 +1,23 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
+from django_filters import rest_framework as filt
 
 from rest_framework import viewsets, permissions, filters, serializers, generics
 from rest_framework.pagination import PageNumberPagination
 
 from reviews.models import Title, Genre, Category
-from .serializers import TitleSerializer, GenreSerializer, CategorySerializer
+from .serializers import GenreSerializer, CategorySerializer, TitleSerializer, TitleSerializerRead
 from .permissions import IsAdminOrReadOnly
+
+
+class TitlesFilter(filt.FilterSet):
+    category = filt.CharFilter(field_name='category__slug', lookup_expr='icontains')
+    genre = filt.CharFilter(field_name='genre__slug', lookup_expr='icontains')
+    name = filt.CharFilter(field_name='name', lookup_expr='icontains')
+
+    class Meta:
+        model = Title
+        fields = ('category', 'genre', 'name', 'year')
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -14,11 +25,21 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
 #    rating = serializers.SerializerMethodField()
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+#    filterset_fields = ['genre__slug']#, 'name', 'year','category__slug',)
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnly,)
-    
-#    def get_rating(self, obj):
+    filterset_class = TitlesFilter
+
+    def get_serializer_class(self):
+        # Если запрошенное действие (action) — получение списка объектов ('list')
+#        print('11111111111111111', self.action)
+        if self.action in ['list', 'retrieve']:
+            # ...то применяем CatListSerializer
+            return TitleSerializerRead
+        # А если запрошенное действие — не 'list', применяем CatSerializer
+        return TitleSerializer
+
+    #    def get_rating(self, obj):
 #        rating = 9 #Review.objects.filter(title=obj.id).aggregate(Avg('score'))
 #        return rating
 
@@ -37,13 +58,14 @@ class GenreList(generics.ListCreateAPIView):
     search_fields = ('name',)
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnly,)
+    lookup_fields = ('slug',)
 
 
 class GenreDestroy(generics.DestroyAPIView):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    lookup_field = 'slug'
     permission_classes = (IsAdminOrReadOnly,)
+    lookup_field = 'slug'
 
 
 class CategoryList(generics.ListCreateAPIView):
@@ -53,10 +75,11 @@ class CategoryList(generics.ListCreateAPIView):
     search_fields = ('name',)
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnly,)
+    lookup_field = 'slug'
 
 
 class CategoryDestroy(generics.DestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    lookup_field = 'slug'
     permission_classes = (IsAdminOrReadOnly,)
+    lookup_field = 'slug'
