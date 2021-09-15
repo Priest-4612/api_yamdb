@@ -1,14 +1,19 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from users.models import User
 
 
 class RegisterSerializer(serializers.ModelSerializer):
 
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+
     default_error_messages = {
         'username': ('Имя пользователя должно содержать только'
-                     'буквенно-цифровые символы.'),
-        'email': ('адрес электронной почты уже используется ')
+                     'буквенно-цифровые символы.')
     }
 
     class Meta:
@@ -16,14 +21,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['email', 'username']
 
     def validate(self, attrs):
-        email = attrs.get('email', '')
         username = attrs.get('username', '')
-        if User.objects.filter(email__iexact=email).exists():
-            raise serializers.ValidationError(self.default_error_messages)
         if not username.isalnum():
             raise serializers.ValidationError(self.default_error_messages)
 
         return attrs
 
     def create(self, validated_data):
-        return User.objects.create(**validated_data)
+        user = User.objects.create(**validated_data)
+        user.set_password()
+        user.save()
+        return user
