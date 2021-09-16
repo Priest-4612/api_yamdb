@@ -10,6 +10,7 @@ from .views import (
     GenreDestroy,
     CategoryList,
 )
+from .views import UserViewSet #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 router_C = DefaultRouter()
 router_C.register(r'titles/(?P<title_id>\d+)/reviews',
@@ -25,6 +26,7 @@ router_C.register(
 
 router_B = DefaultRouter()
 router_B.register('titles', TitleViewSet, basename='titles')
+router_B.register('users', UserViewSet, basename='users') #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 urlpatterns = [
     path('v1/auth/', include('djoser.urls')),

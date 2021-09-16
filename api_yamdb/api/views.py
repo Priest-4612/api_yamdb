@@ -4,6 +4,7 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 
 from reviews.models import Review, Title, Title, Genre, Category
+from users.models import User #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 from .permissions import IsAdminOrMod, IsAdminOrReadOnly
 from .serializers import CommentSerializer, ReviewSerializer
 from .serializers import (
@@ -12,6 +13,7 @@ from .serializers import (
     TitleSerializer,
     TitleSerializerRead,
 )
+from .serializers import UserSerializer #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 from django_filters import rest_framework as filt
 
@@ -131,3 +133,9 @@ class CategoryDestroy(generics.DestroyAPIView):
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
     lookup_field = 'slug'
+
+#FIXITvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsAdminOrReadOnly,)

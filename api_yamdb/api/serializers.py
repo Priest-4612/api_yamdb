@@ -3,6 +3,7 @@ from rest_framework import serializers
 import datetime as dt
 
 from reviews.models import Comment, Review, Category, Genre, Title
+from users.models import User # FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -75,3 +76,11 @@ class TitleSerializer(serializers.ModelSerializer):
                 'Проверьте год издания произведения!'
             )
         return value
+
+# FIXITvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('username', 'email')
