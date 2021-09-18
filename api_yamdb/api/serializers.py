@@ -54,17 +54,17 @@ class TitleSerializerRead(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
     # ЗАГОТОВКА ДЛЯ ВЫЧИСЛЕНИЯ РЕЙТИНГА ПРОИЗВЕДЕНИЯ    
-#    rating = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
         fields = ('__all__')
 
     # ЗАГОТОВКА ДЛЯ ВЫЧИСЛЕНИЯ РЕЙТИНГА ПРОИЗВЕДЕНИЯ
-#    def get_rating(self, obj):
-#        title = get_object_or_404(Title, id=obj.id)
-#        rating = round(title.reviews.all().aggregate(Avg('score'))['score__avg'])
-#        return rating
+    def get_rating(self, obj):
+        title = get_object_or_404(Title, id=obj.id)
+        rating = title.reviews.all().aggregate(Avg('score'))['score__avg']
+        return rating
 
 
 class TitleSerializer(serializers.ModelSerializer):
