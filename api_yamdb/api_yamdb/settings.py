@@ -1,4 +1,5 @@
 import os
+import datetime as dt
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -98,6 +99,12 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAdminUser',
     ]
 }
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': dt.timedelta(minutes=1),
+    'REFRESH_TOKEN_LIFETIME': dt.timedelta(days=1),
+}
+
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
