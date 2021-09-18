@@ -1,8 +1,12 @@
 from rest_framework import serializers
 
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+
 import datetime as dt
 
 from reviews.models import Comment, Review, Category, Genre, Title
+from users.models import User # FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -49,10 +53,18 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializerRead(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
+    # ЗАГОТОВКА ДЛЯ ВЫЧИСЛЕНИЯ РЕЙТИНГА ПРОИЗВЕДЕНИЯ    
+#    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
         fields = ('__all__')
+
+    # ЗАГОТОВКА ДЛЯ ВЫЧИСЛЕНИЯ РЕЙТИНГА ПРОИЗВЕДЕНИЯ
+#    def get_rating(self, obj):
+#        title = get_object_or_404(Title, id=obj.id)
+#        rating = round(title.reviews.all().aggregate(Avg('score'))['score__avg'])
+#        return rating
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -75,3 +87,11 @@ class TitleSerializer(serializers.ModelSerializer):
                 'Проверьте год издания произведения!'
             )
         return value
+
+# FIXITvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('username', 'email')
