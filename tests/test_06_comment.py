@@ -223,12 +223,14 @@ class Test06CommentAPI:
             f'с токеном авторизации {user_name} возвращается статус 403'
         )
 
+
     @pytest.mark.django_db(transaction=True)
     def test_04_comment_check_permission(self, client, admin_client, admin):
         comments, reviews, titles, user, moderator = create_comments(admin_client, admin)
         pre_url = f'/api/v1/titles/{titles[0]["id"]}/reviews/{reviews[0]["id"]}/comments/'
         data = {'text': 'jdfk'}
         response = client.post(f'{pre_url}', data=data)
+        #print(response.json())
         assert response.status_code == 401, (
             'Проверьте, что при POST запросе `/api/v1/titles/{{title_id}}/reviews/{{review_id}}/comments/` '
             'без токена авторизации возвращается статус 401'

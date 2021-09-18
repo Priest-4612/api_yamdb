@@ -21,12 +21,13 @@ ERROR_FORBIDDEN_USERNAME = ('Использовать имя "{username}" в к�
 class User(AbstractUser):
     bio = models.TextField(
         verbose_name='Биография',
-        blank=True
+        blank=True,
+        null=True
     )
     role = models.CharField(
-        max_length=1,
-        choices=USER_ROLES,
-        default='u'
+        max_length=50, #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        #choices=USER_ROLES,
+        default='user' #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     )
 
     def save(self, *args, **kwargs):
@@ -35,5 +36,20 @@ class User(AbstractUser):
                 ERROR_FORBIDDEN_USERNAME.format(username=self.username)
             )
         if self.is_superuser:
-            self.role = 'a'
+            self.role = 'admin' #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         super().save(*args, **kwargs)
+
+    @property
+    def is_admin(self):
+        if self.role == USER_ROLES[2] or self.is_superuser:
+            return True
+
+    @property
+    def is_moderator(self):
+        if self.role == USER_ROLES[1] or self.is_superuser:
+            return True
+
+    class Meta:
+        ordering = (
+            '-username',
+        )

@@ -29,6 +29,14 @@ class Title(models.Model):
         Category, on_delete=models.SET_NULL,
         related_name='titles', blank=True, null=True
     )
+    score = models.PositiveSmallIntegerField(
+        validators=[
+            MaxValueValidator(10, 'Рейтинг не может быть выше 10'),
+            MinValueValidator(1),
+        ],
+        null=True,
+        verbose_name="Рейтинг",
+    )
 
     class Meta:
         ordering = ['name']
@@ -51,7 +59,7 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    rating = models.PositiveSmallIntegerField(
+    score = models.PositiveSmallIntegerField(
         validators=[
             MaxValueValidator(10, 'Максимальная оценка - 10'),
             MinValueValidator(1, 'Минимальная оценка - 1'),
@@ -62,6 +70,11 @@ class Review(models.Model):
         ordering = (
             '-pub_date',
         )
+        constraints = (
+            models.UniqueConstraint(
+                fields=('title', 'author'),
+                name='unique_following'),)
+                
 
 
 class Comment(models.Model):
