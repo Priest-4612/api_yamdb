@@ -26,7 +26,6 @@ class User(AbstractUser):
     )
     role = models.CharField(
         max_length=50, #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        choices=USER_ROLES,
         default='user' #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     )
 
@@ -38,3 +37,18 @@ class User(AbstractUser):
         if self.is_superuser:
             self.role = 'admin' #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         super().save(*args, **kwargs)
+
+    @property
+    def is_admin(self):
+        if self.role == USER_ROLES[2] or self.is_superuser:
+            return True
+
+    @property
+    def is_moderator(self):
+        if self.role == USER_ROLES[1] or self.is_superuser:
+            return True
+
+    class Meta:
+        ordering = (
+            '-username',
+        )

@@ -35,9 +35,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title = get_object_or_404(Title, pk=title_id)
         serializer.is_valid(raise_exception=True)
         serializer.save(author=self.request.user, title=title)
-        title.rating = (Review.objects.filter(title=title).aggregate(Avg(
+        title.score = (Review.objects.filter(title=title).aggregate(Avg(
             'score'))['score__avg'])
-        title.save(update_fields=['rating'])
+        title.save(update_fields=['score'])
 
     def perform_create(self, serializer):
         self.rating_calculation(serializer)
@@ -132,3 +132,4 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminOrReadOnly,)
+
