@@ -37,4 +37,5 @@ urlpatterns = [
     path('v1/genres/<slug:slug>/', GenreDestroy.as_view()),
     path('v1/categories/', CategoryList.as_view()),
     path('v1/categories/<slug:slug>/', CategoryDestroy.as_view()),
+    path('v1/auth/', include('api.users.urls')),
 ]

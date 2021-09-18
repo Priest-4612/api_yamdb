@@ -151,3 +151,5 @@ static/
 
 migrations/
 
+/api_yamdb/sent_emails/*
+!/api_yamdb/sent_emails/.gitkeep

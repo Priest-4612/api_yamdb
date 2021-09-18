@@ -1,5 +1,10 @@
 import os
-from datetime import timedelta
+
+import datetime as dt
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -106,7 +111,20 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
+#SIMPLE_JWT = {
+#    'ACCESS_TOKEN_LIFETIME': timedelta(days=10),
+#    'AUTH_HEADER_TYPES': ('Bearer',),
+#}
+#        'rest_framework.permissions.IsAdminUser',
+#    ]
+#}
+
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=10),
-    'AUTH_HEADER_TYPES': ('Bearer',),
+    'ACCESS_TOKEN_LIFETIME': dt.timedelta(minutes=1),
+    'REFRESH_TOKEN_LIFETIME': dt.timedelta(days=1),
 }
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
