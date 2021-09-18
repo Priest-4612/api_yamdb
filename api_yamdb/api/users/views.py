@@ -36,18 +36,25 @@ class RegisterView(APIView):
 
 
 class TokenView(APIView):
-    queryset = User.objects.all()
     permission_classes = [AllowAny]
     serializer_class = TokenSerializer
 
     def post(self, request):
-        confirmation_code = request.data.get('confirmation_code')
-        decode_token = jwt.decode(
-            confirmation_code, settings.SECRET_KEY, algorithms="HS256"
-        )
-        user = get_object_or_404(User, username=request.data.get('username'))
-        if decode_token['user_id'] == user.id:
-            token = RefreshToken.for_user(user).access_token
-            data = {'token': str(token)}
-            return Response(data, status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        serializer = TokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        username = serializer.data.get('username')
+        confirmation_code = serializer.data.get('confirmation_code')
+        user = get_object_or_404(User, username=username)
+        try:
+            decode_token = jwt.decode(
+                confirmation_code, settings.SECRET_KEY, algorithms="HS256"
+            )
+            if decode_token['user_id'] == user.id:
+                token = RefreshToken.for_user(user)
+                data = {'token': str(token.access_token)}
+                return Response(data=data, status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        except jwt.exceptions.DecodeError as error:
+            message = {'token_error': str(error)}
+            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)

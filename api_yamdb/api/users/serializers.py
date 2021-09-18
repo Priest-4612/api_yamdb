@@ -7,10 +7,12 @@ from users.models import User
 class RegisterSerializer(serializers.ModelSerializer):
 
     email = serializers.EmailField(
+        max_length=150,
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
     username = serializers.CharField(
+        max_length=150,
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
@@ -33,9 +35,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         return User.objects.create(**validated_data)
 
 
-class TokenSerializer(serializers.ModelSerializer):
-    confirmation_code = serializers.CharField(max_length=555)
+class TokenSerializer(serializers.Serializer):
+    confirmation_code = serializers.CharField(
+        required=True,
+        max_length=555,
+    )
+    username = serializers.CharField(
+        required=True,
+        max_length=150,
+    )
 
     class Meta:
         fields = ['username', 'confirmation_code']
-        model = User
