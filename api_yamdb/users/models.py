@@ -26,7 +26,6 @@ class User(AbstractUser):
     )
     role = models.CharField(
         max_length=50, #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        #choices=USER_ROLES,
         default='user' #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     )
 
