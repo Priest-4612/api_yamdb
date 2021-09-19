@@ -48,7 +48,8 @@ class Title(models.Model):
 class Review(models.Model):
     text = models.TextField()
     pub_date = models.DateTimeField(
-        auto_now_add=True,)
+        auto_now_add=True,
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -73,22 +74,25 @@ class Review(models.Model):
         constraints = (
             models.UniqueConstraint(
                 fields=('title', 'author'),
-                name='unique_following'),)
-                
+                name='unique_following'),
+        )
 
 
 class Comment(models.Model):
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
-        related_name='comments')
+        related_name='comments'
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='comments')
+        related_name='comments'
+    )
     text = models.TextField()
     pub_date = models.DateTimeField(
-        auto_now_add=True,)
+        auto_now_add=True,
+    )
 
     class Meta:
         ordering = (

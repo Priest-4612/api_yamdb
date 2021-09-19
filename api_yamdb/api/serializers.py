@@ -6,7 +6,6 @@ from django.shortcuts import get_object_or_404
 import datetime as dt
 
 from reviews.models import Comment, Review, Category, Genre, Title
-from users.models import User # FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -35,7 +34,7 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
 
-        
+
 class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -53,14 +52,12 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializerRead(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
-    # ЗАГОТОВКА ДЛЯ ВЫЧИСЛЕНИЯ РЕЙТИНГА ПРОИЗВЕДЕНИЯ    
     rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
         fields = ('__all__')
 
-    # ЗАГОТОВКА ДЛЯ ВЫЧИСЛЕНИЯ РЕЙТИНГА ПРОИЗВЕДЕНИЯ
     def get_rating(self, obj):
         title = get_object_or_404(Title, id=obj.id)
         rating = title.reviews.all().aggregate(Avg('score'))['score__avg']
@@ -87,12 +84,3 @@ class TitleSerializer(serializers.ModelSerializer):
                 'Проверьте год издания произведения!'
             )
         return value
-
-# FIXITvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
-class UserSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'role')
-

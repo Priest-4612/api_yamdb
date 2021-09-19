@@ -2,15 +2,15 @@ from rest_framework.routers import DefaultRouter
 
 from django.urls import include, path
 
-from .views import CommentViewSet, ReviewViewSet
 from .views import (
+    CommentViewSet,
     CategoryDestroy,
     TitleViewSet,
     GenreList,
     GenreDestroy,
     CategoryList,
+    ReviewViewSet,
 )
-from .views import UserViewSet #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 router_C = DefaultRouter()
 router_C.register(r'titles/(?P<title_id>\d+)/reviews',
@@ -20,13 +20,8 @@ router_C.register(
     CommentViewSet,
     basename='comments'
 )
-
-# urlpatterns = [
-#    path('v1/', include(router_C.urls)),
-
 router_B = DefaultRouter()
 router_B.register('titles', TitleViewSet, basename='titles')
-router_B.register('users', UserViewSet, basename='users') #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 urlpatterns = [
     path('v1/', include('api.users.urls')),
