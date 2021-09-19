@@ -1,13 +1,30 @@
 from django.urls import path
-from rest_framework.routers import DefaultRouter
 
-from api.users.views import RegisterView, TokenView
+from api.users import views
 
-app_name = 'user'
-router = DefaultRouter()
+app_name = 'users'
+user_list = views.UserViewSet.as_view({
+    'get': 'list',
+    'post': 'create'
+})
+user_detail = views.UserViewSet.as_view({
+    'get': 'retrieve',
+    'put': 'update',
+    'patch': 'partial_update',
+    'delete': 'destroy'
+})
 
+
+me_detail = views.MeViewSet.as_view({
+    'get': 'retrieve',
+    'put': 'update',
+    'patch': 'partial_update',
+})
 
 urlpatterns = [
-    path('signup/', RegisterView.as_view(), name='register'),
-    path('token/', TokenView.as_view(), name='token')
+    path('users/me/', me_detail, name='me_detail'),
+    path('users/', user_list, name='user-list'),
+    path('users/<str:username>/', user_detail, name='user-detail'),
+    path('signup/', views.RegisterView.as_view(), name='register'),
+    path('token/', views.TokenView.as_view(), name='token')
 ]

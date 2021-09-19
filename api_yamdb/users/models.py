@@ -4,9 +4,9 @@ from django.core.exceptions import ValidationError
 
 
 USER_ROLES = (
-    ('u', 'user'),
-    ('m', 'moderator'),
-    ('a', 'admin')
+    ('user', 'user'),
+    ('moderator', 'moderator'),
+    ('admin', 'admin')
 )
 
 FORBIDDEN_USERNAME = [
@@ -25,9 +25,14 @@ class User(AbstractUser):
         null=True
     )
     role = models.CharField(
-        max_length=50, #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        default='user' #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+        max_length=30,
+        choices=USER_ROLES,
+        default='user'
     )
+
+    class Meta:
+        ordering = ['-date_joined']
 
     def save(self, *args, **kwargs):
         if self.username in FORBIDDEN_USERNAME and not self.is_superuser:
@@ -35,7 +40,8 @@ class User(AbstractUser):
                 ERROR_FORBIDDEN_USERNAME.format(username=self.username)
             )
         if self.is_superuser:
-            self.role = 'admin' #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+            self.role = 'admin'
         super().save(*args, **kwargs)
 
     @property

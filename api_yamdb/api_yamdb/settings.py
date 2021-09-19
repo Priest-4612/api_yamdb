@@ -98,7 +98,8 @@ AUTH_USER_MODEL = 'users.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAdminUser'
+
+        'rest_framework.permissions.IsAdminUser',
     ],
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -106,7 +107,7 @@ REST_FRAMEWORK = {
     ],
 
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5,
+    'PAGE_SIZE': 10,
 
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
@@ -120,8 +121,9 @@ REST_FRAMEWORK = {
 #}
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': dt.timedelta(minutes=1),
-    'REFRESH_TOKEN_LIFETIME': dt.timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': dt.timedelta(days=7),
+    'REFRESH_TOKEN_LIFETIME': dt.timedelta(days=30),
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 

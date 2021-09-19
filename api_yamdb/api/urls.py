@@ -29,8 +29,7 @@ router_B.register('titles', TitleViewSet, basename='titles')
 router_B.register('users', UserViewSet, basename='users') #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 urlpatterns = [
-    path('v1/auth/', include('djoser.urls')),
-    path('v1/auth/', include('djoser.urls.jwt')),
+    path('v1/', include('api.users.urls')),
     path('v1/', include(router_B.urls)),
     path('v1/', include(router_C.urls)),
     path('v1/genres/', GenreList.as_view()),
