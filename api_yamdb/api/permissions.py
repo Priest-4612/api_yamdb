@@ -16,9 +16,8 @@ class IsAdminOrMod(BasePermission):
             return request.method in SAFE_METHODS
     def has_object_permission(self, request, view, obj):
         if request.user.is_authenticated:
-            print('метод - ', request.method, ', роль -', request.user.role, ', автор -', obj.author, ', пользователь -', request.user)
             return (request.user.is_superuser or request.user.role == 'admin' or request.user.role == 'moderator'
-                or obj.author == request.user) #or request.user.username == 'TestModer'
+                or obj.author == request.user)
         else:
             return request.method in SAFE_METHODS
 
