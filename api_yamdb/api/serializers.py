@@ -4,7 +4,6 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
@@ -60,8 +59,7 @@ class TitleSerializerRead(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         title = get_object_or_404(Title, id=obj.id)
-        rating = title.reviews.all().aggregate(Avg('score'))['score__avg']
-        return rating
+        return title.reviews.all().aggregate(Avg('score'))['score__avg']
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -84,6 +82,7 @@ class TitleSerializer(serializers.ModelSerializer):
                 'Проверьте год издания произведения!'
             )
         return value
+
 
 class RegisterSerializer(serializers.ModelSerializer):
 

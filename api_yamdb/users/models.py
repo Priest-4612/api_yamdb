@@ -1,7 +1,6 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
-
+from django.db import models
 
 USER_ROLES = (
     ('user', 'user'),
@@ -46,13 +45,11 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        if self.role == USER_ROLES[2] or self.is_superuser:
-            return True
+        return self.role == USER_ROLES[2] or self.is_superuser
 
     @property
     def is_moderator(self):
-        if self.role == USER_ROLES[1] or self.is_superuser:
-            return True
+        return self.role == USER_ROLES[1] or self.is_superuser
 
     class Meta:
         ordering = (

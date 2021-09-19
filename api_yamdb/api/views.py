@@ -10,9 +10,9 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
+
 from .permissions import AdminOnly, IsAdminOrMod, IsAdminOrReadOnly, OwnerOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, MeSerializer, RegisterSerializer,
@@ -51,8 +51,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_review(self):
         title_id = self.kwargs.get('title_id')
         review_id = self.kwargs.get('review_id')
-        review = get_object_or_404(Review, pk=review_id, title__id=title_id)
-        return review
+        return get_object_or_404(Review, pk=review_id, title__id=title_id)
 
     def get_queryset(self):
         review = self.get_review()
