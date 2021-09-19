@@ -29,6 +29,9 @@ class User(AbstractUser):
         default='user'
     )
 
+    class Meta:
+        ordering = ['-date_joined']
+
     def save(self, *args, **kwargs):
         if self.username in FORBIDDEN_USERNAME and not self.is_superuser:
             raise ValidationError(
