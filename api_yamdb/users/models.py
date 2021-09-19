@@ -4,9 +4,9 @@ from django.core.exceptions import ValidationError
 
 
 USER_ROLES = (
-    ('u', 'user'),
-    ('m', 'moderator'),
-    ('a', 'admin')
+    ('user', 'user'),
+    ('moderator', 'moderator'),
+    ('admin', 'admin')
 )
 
 FORBIDDEN_USERNAME = [
@@ -24,9 +24,9 @@ class User(AbstractUser):
         blank=True
     )
     role = models.CharField(
-        max_length=1,
+        max_length=30,
         choices=USER_ROLES,
-        default='u'
+        default='user'
     )
 
     def save(self, *args, **kwargs):
@@ -35,5 +35,5 @@ class User(AbstractUser):
                 ERROR_FORBIDDEN_USERNAME.format(username=self.username)
             )
         if self.is_superuser:
-            self.role = 'a'
+            self.role = 'admin'
         super().save(*args, **kwargs)

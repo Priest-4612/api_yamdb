@@ -97,12 +97,18 @@ AUTH_USER_MODEL = 'users.User'
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAdminUser',
-    ]
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': dt.timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': dt.timedelta(days=7),
+    'ACCESS_TOKEN_LIFETIME': dt.timedelta(days=7),
+    'REFRESH_TOKEN_LIFETIME': dt.timedelta(days=30),
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 
