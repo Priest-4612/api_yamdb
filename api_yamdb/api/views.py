@@ -1,25 +1,21 @@
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework import serializers
-
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django_filters import rest_framework as filt
+
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import viewsets, filters, generics
+from rest_framework.pagination import PageNumberPagination
 
 from reviews.models import Review, Title, Title, Genre, Category
-from users.models import User #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 from .permissions import IsAdminOrMod, IsAdminOrReadOnly
-from .serializers import CommentSerializer, ReviewSerializer
 from .serializers import (
+    CommentSerializer,
     GenreSerializer,
     CategorySerializer,
     TitleSerializer,
     TitleSerializerRead,
+    ReviewSerializer,
 )
-from .serializers import UserSerializer #FIXIT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-from django_filters import rest_framework as filt
-
-from rest_framework import viewsets, filters, generics
-from rest_framework.pagination import PageNumberPagination
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -64,7 +60,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         review = self.get_review()
         serializer.save(author=self.request.user, review=review)
 
-        
+
 class TitlesFilter(filt.FilterSet):
     category = filt.CharFilter(
         field_name='category__slug',
@@ -96,8 +92,9 @@ class TitleViewSet(viewsets.ModelViewSet):
             return TitleSerializerRead
         return TitleSerializer
 
+
 class GenreList(generics.ListCreateAPIView):
-    queryset = Genre.objects.all()
+    queryset = Genre.objects.all().order_by('slug')
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -113,7 +110,7 @@ class GenreDestroy(generics.DestroyAPIView):
 
 
 class CategoryList(generics.ListCreateAPIView):
-    queryset = Category.objects.all()
+    queryset = Category.objects.all().order_by('slug')
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -126,10 +123,3 @@ class CategoryDestroy(generics.DestroyAPIView):
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
     lookup_field = 'slug'
-
-#FIXITvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-
