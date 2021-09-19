@@ -1,35 +1,23 @@
 import jwt
-
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filt
-
-from rest_framework import status
-from rest_framework import permissions, viewsets
+from rest_framework import filters, generics, permissions, status, viewsets
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import viewsets, filters, generics
-from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from reviews.models import Review, Title, Title, Genre, Category
+from reviews.models import Category, Genre, Review, Title
 from users.models import User
-from .permissions import IsAdminOrMod, IsAdminOrReadOnly, AdminOnly, OwnerOnly
-from .serializers import (
-    CommentSerializer,
-    GenreSerializer,
-    CategorySerializer,
-    TitleSerializer,
-    TitleSerializerRead,
-    ReviewSerializer,
-    RegisterSerializer,
-    TokenSerializer,
-    UserSerializer,
-    MeSerializer,
-)
+from .permissions import AdminOnly, IsAdminOrMod, IsAdminOrReadOnly, OwnerOnly
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, MeSerializer, RegisterSerializer,
+                          ReviewSerializer, TitleSerializer,
+                          TitleSerializerRead, TokenSerializer, UserSerializer)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
