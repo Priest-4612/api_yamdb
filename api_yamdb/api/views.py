@@ -1,18 +1,21 @@
-import jwt
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters import rest_framework as filt
-from rest_framework import filters, generics, permissions, status, viewsets
+
+import jwt
+from rest_framework import mixins
+from rest_framework.decorators import action
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
-
+from .filters import TitlesFilter
 from .permissions import AdminOnly, IsAdminOrMod, IsAdminOrReadOnly, OwnerOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, MeSerializer, RegisterSerializer,
@@ -28,20 +31,17 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         return title.reviews.all()
 
-    def rating_calculation(self, serializer):
+    def save_review(self, serializer):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, pk=title_id)
         serializer.is_valid(raise_exception=True)
         serializer.save(author=self.request.user, title=title)
-        title.score = (Review.objects.filter(title=title).aggregate(Avg(
-            'score'))['score__avg'])
-        title.save(update_fields=['score'])
 
     def perform_create(self, serializer):
-        self.rating_calculation(serializer)
+        self.save_review(serializer)
 
     def perform_update(self, serializer):
-        self.rating_calculation(serializer)
+        self.save_review(serializer)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -62,27 +62,9 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-class TitlesFilter(filt.FilterSet):
-    category = filt.CharFilter(
-        field_name='category__slug',
-        lookup_expr='icontains',
-    )
-    genre = filt.CharFilter(
-        field_name='genre__slug',
-        lookup_expr='icontains',
-    )
-    name = filt.CharFilter(
-        field_name='name',
-        lookup_expr='icontains',
-    )
-
-    class Meta:
-        model = Title
-        fields = ('category', 'genre', 'name', 'year')
-
-
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')).order_by('name')
     serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnly,)
@@ -94,35 +76,29 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-class GenreList(generics.ListCreateAPIView):
+class GenreViewSet(mixins.ListModelMixin,
+                   mixins.CreateModelMixin,
+                   mixins.DestroyModelMixin,
+                   viewsets.GenericViewSet):
     queryset = Genre.objects.all().order_by('slug')
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = PageNumberPagination
-    permission_classes = (IsAdminOrReadOnly,)
-
-
-class GenreDestroy(generics.DestroyAPIView):
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = [IsAdminOrReadOnly]
     lookup_field = 'slug'
 
 
-class CategoryList(generics.ListCreateAPIView):
+class CategoryViewSet(mixins.ListModelMixin,
+                      mixins.CreateModelMixin,
+                      mixins.DestroyModelMixin,
+                      viewsets.GenericViewSet):
     queryset = Category.objects.all().order_by('slug')
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = PageNumberPagination
-    permission_classes = (IsAdminOrReadOnly,)
-
-
-class CategoryDestroy(generics.DestroyAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = [IsAdminOrReadOnly]
     lookup_field = 'slug'
 
 
@@ -133,19 +109,18 @@ class RegisterView(APIView):
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            user_data = serializer.data
-            user = get_object_or_404(User, username=user_data['username'])
-            confirmation_code = RefreshToken.for_user(user).access_token
-            send_mail(
-                subject='Регистрация нового пользователя',
-                message=f'Ваш код {confirmation_code}',
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[user_data['email']]
-            )
-            return Response(user_data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user_data = serializer.validated_data
+        user = get_object_or_404(User, username=user_data['username'])
+        confirmation_code = RefreshToken.for_user(user).access_token
+        send_mail(
+            subject='Регистрация нового пользователя',
+            message=f'Ваш код {confirmation_code}',
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[user_data['email']]
+        )
+        return Response(user_data, status=status.HTTP_200_OK)
 
 
 class TokenView(APIView):
@@ -156,8 +131,8 @@ class TokenView(APIView):
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        username = serializer.data.get('username')
-        confirmation_code = serializer.data.get('confirmation_code')
+        username = serializer.validated_data.get('username')
+        confirmation_code = serializer.validated_data.get('confirmation_code')
         user = get_object_or_404(User, username=username)
         try:
             decode_token = jwt.decode(
@@ -178,70 +153,17 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     pagination_class = PageNumberPagination
+    lookup_field = 'username'
 
-    def retrieve(self, request, username=None):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, username=username)
-        serializer = UserSerializer(user)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-    def update(self, request, username=None):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, username=username)
-        serializer = UserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(
-            data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    def partial_update(self, request, username=None):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, username=username)
-        serializer = UserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(
-            data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    def destroy(self, request, username=None):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, username=username)
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class MeViewSet(viewsets.ModelViewSet):
-    permission_classes = [OwnerOnly]
-    serializer_class = MeSerializer
-
-    def retrieve(self, request):
+    @action(detail=False, methods=['get', 'post', 'put', 'patch'],
+            permission_classes=[OwnerOnly], name='me')
+    def me(self, request):
         queryset = User.objects.all()
         user = get_object_or_404(queryset, username=request.user)
-        serializer = MeSerializer(user)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-    def update(self, request):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, username=request.user)
+        if request.method == 'GET':
+            serializer = MeSerializer(user)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
         serializer = MeSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(
-            data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    def partial_update(self, request):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, username=request.user)
-        serializer = MeSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(
-            data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
