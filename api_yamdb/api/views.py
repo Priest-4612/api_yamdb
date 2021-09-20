@@ -4,8 +4,9 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 
 import jwt
+from rest_framework import mixins
 from rest_framework.decorators import action
-from rest_framework import filters, generics, permissions, status, viewsets
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -77,35 +78,29 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-class GenreList(generics.ListCreateAPIView):
+class GenreViewSet(mixins.ListModelMixin,
+                   mixins.CreateModelMixin,
+                   mixins.DestroyModelMixin,
+                   viewsets.GenericViewSet):
     queryset = Genre.objects.all().order_by('slug')
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = PageNumberPagination
-    permission_classes = (IsAdminOrReadOnly,)
-
-
-class GenreDestroy(generics.DestroyAPIView):
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = [IsAdminOrReadOnly]
     lookup_field = 'slug'
 
 
-class CategoryList(generics.ListCreateAPIView):
+class CategoryViewSet(mixins.ListModelMixin,
+                      mixins.CreateModelMixin,
+                      mixins.DestroyModelMixin,
+                      viewsets.GenericViewSet):
     queryset = Category.objects.all().order_by('slug')
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = PageNumberPagination
-    permission_classes = (IsAdminOrReadOnly,)
-
-
-class CategoryDestroy(generics.DestroyAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = [IsAdminOrReadOnly]
     lookup_field = 'slug'
 
 

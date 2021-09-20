@@ -26,19 +26,22 @@ class IsAdminOrMod(BasePermission):
 
 
 class IsAdminOrReadOnly(BasePermission):
+
     def has_permission(self, request, view):
-        if request.user.is_authenticated:
-            return (
-                request.method in SAFE_METHODS
-                or request.user.is_superuser
-                or request.user.role == ADMIN
-            )
-        else:
-            return request.method in SAFE_METHODS
+        return (
+            request.user.is_authenticated and request.user.role == ADMIN
+            or request.method in SAFE_METHODS
+        )
+
+    def has_object_permission(self, request, view, obj):
+        return (
+            request.user.is_authenticated and request.user.role == ADMIN
+            or request.method in SAFE_METHODS
+        )
 
 
 class AdminOnly(BasePermission):
-    methods = ['retrieve', 'update', 'partial_update', 'destroy']
+    actions = ['retrieve', 'update', 'partial_update', 'destroy']
 
     def has_permission(self, request, view):
         return (
@@ -47,13 +50,13 @@ class AdminOnly(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return (
-            request.user.role == ADMIN or view.action in self.methods
+            request.user.role == ADMIN or view.action in self.actions
         )
 
 
 class OwnerOnly(BasePermission):
 
-    methods = ['retrieve', 'update', 'partial_update']
+    actions = ['retrieve', 'update', 'partial_update']
 
     def has_permission(self, request, view):
         return request.user.is_authenticated
@@ -62,5 +65,5 @@ class OwnerOnly(BasePermission):
         return (
             request.user.is_authenticated
             and obj.username == request.user
-            and view.action in self.methods
+            and view.action in self.actions
         )
