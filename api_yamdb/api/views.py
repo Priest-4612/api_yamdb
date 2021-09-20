@@ -1,18 +1,19 @@
-import jwt
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters import rest_framework as filt
+
+import jwt
 from rest_framework import filters, generics, permissions, status, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
-
+from .filters import TitlesFilter
 from .permissions import AdminOnly, IsAdminOrMod, IsAdminOrReadOnly, OwnerOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, MeSerializer, RegisterSerializer,
@@ -60,25 +61,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review = self.get_review()
         serializer.save(author=self.request.user, review=review)
-
-
-class TitlesFilter(filt.FilterSet):
-    category = filt.CharFilter(
-        field_name='category__slug',
-        lookup_expr='icontains',
-    )
-    genre = filt.CharFilter(
-        field_name='genre__slug',
-        lookup_expr='icontains',
-    )
-    name = filt.CharFilter(
-        field_name='name',
-        lookup_expr='icontains',
-    )
-
-    class Meta:
-        model = Title
-        fields = ('category', 'genre', 'name', 'year')
 
 
 class TitleViewSet(viewsets.ModelViewSet):
