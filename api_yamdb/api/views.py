@@ -4,6 +4,7 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 
 import jwt
+from rest_framework.decorators import action
 from rest_framework import filters, generics, permissions, status, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -115,19 +116,18 @@ class RegisterView(APIView):
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            user_data = serializer.data
-            user = get_object_or_404(User, username=user_data['username'])
-            confirmation_code = RefreshToken.for_user(user).access_token
-            send_mail(
-                subject='Регистрация нового пользователя',
-                message=f'Ваш код {confirmation_code}',
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[user_data['email']]
-            )
-            return Response(user_data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user_data = serializer.validated_data
+        user = get_object_or_404(User, username=user_data['username'])
+        confirmation_code = RefreshToken.for_user(user).access_token
+        send_mail(
+            subject='Регистрация нового пользователя',
+            message=f'Ваш код {confirmation_code}',
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[user_data['email']]
+        )
+        return Response(user_data, status=status.HTTP_200_OK)
 
 
 class TokenView(APIView):
@@ -138,8 +138,8 @@ class TokenView(APIView):
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        username = serializer.data.get('username')
-        confirmation_code = serializer.data.get('confirmation_code')
+        username = serializer.validated_data.get('username')
+        confirmation_code = serializer.validated_data.get('confirmation_code')
         user = get_object_or_404(User, username=username)
         try:
             decode_token = jwt.decode(
@@ -160,70 +160,17 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     pagination_class = PageNumberPagination
+    lookup_field = 'username'
 
-    def retrieve(self, request, username=None):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, username=username)
-        serializer = UserSerializer(user)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-    def update(self, request, username=None):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, username=username)
-        serializer = UserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(
-            data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    def partial_update(self, request, username=None):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, username=username)
-        serializer = UserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(
-            data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    def destroy(self, request, username=None):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, username=username)
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class MeViewSet(viewsets.ModelViewSet):
-    permission_classes = [OwnerOnly]
-    serializer_class = MeSerializer
-
-    def retrieve(self, request):
+    @action(detail=False, methods=['get', 'post', 'put', 'patch'],
+            permission_classes=[OwnerOnly], name='me')
+    def me(self, request):
         queryset = User.objects.all()
         user = get_object_or_404(queryset, username=request.user)
-        serializer = MeSerializer(user)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-    def update(self, request):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, username=request.user)
+        if request.method == 'GET':
+            serializer = MeSerializer(user)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
         serializer = MeSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(
-            data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    def partial_update(self, request):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, username=request.user)
-        serializer = MeSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(
-            data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
