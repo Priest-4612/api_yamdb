@@ -69,14 +69,6 @@ class Title(models.Model):
         null=True,
         verbose_name='category'
     )
-    score = models.PositiveSmallIntegerField(
-        validators=[
-            MaxValueValidator(10, 'Рейтинг не может быть выше 10'),
-            MinValueValidator(1),
-        ],
-        null=True,
-        verbose_name='score',
-    )
 
     class Meta:
         verbose_name = 'title'
