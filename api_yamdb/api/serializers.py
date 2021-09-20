@@ -1,5 +1,3 @@
-from django.db.models import Avg
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from rest_framework import serializers
@@ -9,9 +7,15 @@ from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(slug_field='username',
-                                          read_only=True)
-    title = serializers.SlugRelatedField(slug_field='pk', read_only=True)
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True,
+        default=serializers.CurrentUserDefault()
+    )
+    title = serializers.SlugRelatedField(
+        slug_field='pk',
+        read_only=True
+    )
 
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
@@ -52,24 +56,23 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializerRead(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
-    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
         fields = ('__all__')
 
-    def get_rating(self, obj):
-        title = get_object_or_404(Title, id=obj.id)
-        return title.reviews.all().aggregate(Avg('score'))['score__avg']
-
 
 class TitleSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
-        queryset=Genre.objects.all(), required=False, slug_field='slug',
+        queryset=Genre.objects.all(),
+        required=False,
+        slug_field='slug',
         many=True,
     )
     category = serializers.SlugRelatedField(
-        queryset=Category.objects.all(), required=False, slug_field='slug'
+        queryset=Category.objects.all(),
+        required=False,
+        slug_field='slug'
     )
 
     class Meta:

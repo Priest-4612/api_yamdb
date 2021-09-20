@@ -31,20 +31,20 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         return title.reviews.all()
 
-    def rating_calculation(self, serializer):
+    def save_review(self, serializer):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, pk=title_id)
         serializer.is_valid(raise_exception=True)
         serializer.save(author=self.request.user, title=title)
-        title.score = (Review.objects.filter(title=title).aggregate(Avg(
-            'score'))['score__avg'])
-        title.save(update_fields=['score'])
+        # title.score = (Review.objects.filter(title=title).aggregate(Avg(
+        #     'score'))['score__avg'])
+        # title.save(update_fields=['score'])
 
     def perform_create(self, serializer):
-        self.rating_calculation(serializer)
+        self.save_review(serializer)
 
     def perform_update(self, serializer):
-        self.rating_calculation(serializer)
+        self.save_review(serializer)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
