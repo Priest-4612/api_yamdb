@@ -1,7 +1,6 @@
-import datetime as dt
-
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -40,14 +39,14 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ('slug', 'name')
+        exclude = ['id']
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ('slug', 'name')
+        exclude = ['id']
 
 
 class TitleSerializerRead(serializers.ModelSerializer):
@@ -78,7 +77,8 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 
     def validate_year(self, value):
-        year = dt.date.today().year
+
+        year = timezone.now().year
         if value > year:
             raise serializers.ValidationError(
                 'Проверьте год издания произведения!'
