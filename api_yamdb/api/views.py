@@ -76,30 +76,25 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-class GenreViewSet(mixins.ListModelMixin,
-                   mixins.CreateModelMixin,
-                   mixins.DestroyModelMixin,
-                   viewsets.GenericViewSet):
+class GenreCategoryMixin(mixins.ListModelMixin,
+                         mixins.CreateModelMixin,
+                         mixins.DestroyModelMixin,
+                         viewsets.GenericViewSet):
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    pagination_class = PageNumberPagination
+    permission_classes = [IsAdminOrReadOnly]
+    lookup_field = 'slug'
+
+
+class GenreViewSet(GenreCategoryMixin):
     queryset = Genre.objects.all().order_by('slug')
     serializer_class = GenreSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    pagination_class = PageNumberPagination
-    permission_classes = [IsAdminOrReadOnly]
-    lookup_field = 'slug'
 
 
-class CategoryViewSet(mixins.ListModelMixin,
-                      mixins.CreateModelMixin,
-                      mixins.DestroyModelMixin,
-                      viewsets.GenericViewSet):
+class CategoryViewSet(GenreCategoryMixin):
     queryset = Category.objects.all().order_by('slug')
     serializer_class = CategorySerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    pagination_class = PageNumberPagination
-    permission_classes = [IsAdminOrReadOnly]
-    lookup_field = 'slug'
 
 
 class RegisterView(APIView):
@@ -158,8 +153,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get', 'post', 'put', 'patch'],
             permission_classes=[OwnerOnly], name='me')
     def me(self, request):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, username=request.user)
+        user = request.user
         if request.method == 'GET':
             serializer = MeSerializer(user)
             return Response(data=serializer.data, status=status.HTTP_200_OK)
